@@ -1,5 +1,19 @@
 ## RELEASE NOTES
 
+### Version 1.11.8 - April 13, 2015
+
+**Bugs**
+- **Build Tools** - Fixed `npm install` without `semantic.json` to merge changes with site theme and packaged themes in a similar fashion to `npm update`
+- **Build** - `gulp build` now properly warns against missing `semantic.json` **Thanks @rudyrk**
+
+### Version 1.11.7 - April 13, 2015
+
+**Bugs**
+
+- **Sticky** - Fixes errant `console.log` statement appearing in source
+- **Card** - Fixes card `flex` display issues in IE
+- **Build Tools** - Fixes issue where `npm update` install scripts would remove custom themes from `src/themes/` during copy after updating Semantic UI
+
 ### Version 1.11.6 - March 27, 2015
 
 More critical bug backports from `2.x` branch, as well as fixes for browserify
