@@ -22,8 +22,8 @@
      Site Theme
 -------------------*/
 
-@import "@{siteFolder}/globals/site.variables";
-@import "@{siteFolder}/@{type}s/@{element}.variables";
+@import (optional) "@{siteFolder}/globals/site.variables";
+@import (optional) "@{siteFolder}/@{type}s/@{element}.variables";
 
 
 /*******************************
@@ -31,3 +31,12 @@
 *******************************/
 
 @import "@{definitionsFolder}/globals/mixins";
+
+/*------------------
+     Overrides
+-------------------*/
+
+.loadUIOverrides() {
+  @import "@{themesFolder}/@{theme}/@{type}s/@{element}.overrides";
+  @import (optional) "@{siteFolder}/@{type}s/@{element}.overrides";
+}
