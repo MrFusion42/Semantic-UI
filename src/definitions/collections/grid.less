@@ -893,9 +893,9 @@
   }
   
   .forCols(2); .-each(@name, @num) {
-    .ui[class*="@{name} column"].doubling.grid > .row > .column,
-    .ui[class*="@{name} column"].doubling.grid > .column,
-    .ui.grid > [class*="@{name} column"].doubling.row > .column {
+    .ui[class*="@{name} column"].doubling:not(.stackable).grid > .row > .column,
+    .ui[class*="@{name} column"].doubling:not(.stackable).grid > .column,
+    .ui.grid > [class*="@{name} column"].doubling:not(.stackable).row > .column {
       .-doublingNumber(@num);
       .fractionWidth(1, @i) !important;
     }
