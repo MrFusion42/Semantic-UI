@@ -3,7 +3,7 @@
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2015 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -23,20 +23,11 @@
 *******************************/
 
 .ui.grid {
-  display: block;
-  text-align: left;
-
-  font-size: 0em;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
   padding: 0em;
-}
-
-.ui.grid:after,
-.ui.grid > .row:after {
-  content: '';
-  display: block;
-  height: 0px;
-  clear: both;
-  visibility: hidden;
 }
 
 /*----------------------
@@ -59,9 +50,9 @@
 }
 
 
-/* Collapse Margins on Consecutive Grids */
+/* Preserve Rows Spacing on Consecutive Grids */
 .ui.grid + .grid {
-  margin-top: (@rowSpacing / 2);
+  margin-top: @consecutiveGridDistance;
 }
 
 /*-------------------
@@ -73,7 +64,6 @@
 .ui.grid > .row > .column {
   position: relative;
   display: inline-block;
-  font-size: 1rem;
 
   .fractionWidth(1, @columnCount);
   padding-left: (@gutterWidth / 2);
@@ -92,10 +82,13 @@
 
 .ui.grid > .row {
   position: relative;
-  display: block;
-  width: auto !important;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: inherit;
+  align-items: stretch;
+  width: 100% !important;
   padding: 0rem;
-  font-size: 0rem;
   padding-top: (@rowSpacing / 2);
   padding-bottom: (@rowSpacing / 2);
 }
@@ -127,11 +120,30 @@
     Loose Coupling
 --------------------*/
 
-.ui.grid .row + .ui.divider {
-  margin: (@rowSpacing / 2) (@gutterWidth / 2);
+/* Collapse Margin on Consecutive Grid */
+.ui.grid > .ui.grid:first-child {
+  margin-top: 0em;
+}
+.ui.grid > .ui.grid:last-child {
+  margin-bottom: 0em;
 }
 
-/* remove Border on last horizontal segment */
+/* Segment inside Aligned Grid */
+.ui.grid .aligned.row > .column > .segment:not(.compact),
+.ui.aligned.grid .column > .segment:not(.compact) {
+  width: 100%;
+}
+
+/* Align Dividers with Gutter */
+.ui.grid .row + .ui.divider {
+  flex-grow: 1;
+  margin: (@rowSpacing / 2) (@gutterWidth / 2);
+}
+.ui.grid .column + .ui.vertical.divider {
+  height: ~"calc(50% - "(@rowSpacing/2)~")";
+}
+
+/* Remove Border on Last Horizontal Segment */
 .ui.grid > .row > .column:last-child > .horizontal.segment,
 .ui.grid > .column:last-child > .horizontal.segment {
   box-shadow: none;
@@ -146,21 +158,7 @@
        Page Grid
 -------------------------*/
 
-.ui.page.grid {
-  padding-left: @computerGutter;
-  padding-right: @computerGutter;
-  width: @computerWidth;
-}
-
-/* Collapse Margin */
-.ui.grid > .ui.grid:first-child {
-  margin-top: 0em;
-}
-.ui.grid > .ui.grid:last-child {
-  margin-bottom: 0em;
-}
-
-@media only screen and (max-width: (@largestMobileScreen)) {
+@media only screen and (max-width: @largestMobileScreen) {
   .ui.page.grid {
     width: @mobileWidth;
     padding-left: @mobileGutter;
@@ -169,7 +167,7 @@
     margin-right: 0em;
   }
 }
-@media only screen and (min-width: @tabletBreakpoint ) {
+@media only screen and (min-width: @tabletBreakpoint) and (max-width: @largestTabletScreen) {
   .ui.page.grid {
     width: @tabletWidth;
     margin-left: @tabletMargin;
@@ -178,7 +176,7 @@
     padding-right: @tabletGutter;
   }
 }
-@media only screen and (min-width: @computerBreakpoint) {
+@media only screen and (min-width: @computerBreakpoint) and (max-width: @largestSmallMonitor) {
   .ui.page.grid {
     width: @computerWidth;
     margin-left: @computerMargin;
@@ -187,7 +185,7 @@
     padding-right: @computerGutter;
   }
 }
-@media only screen and (min-width: @largeMonitorBreakpoint) {
+@media only screen and (min-width: @largeMonitorBreakpoint) and (max-width: @largestLargeMonitor) {
   .ui.page.grid {
     width: @largeMonitorWidth;
     margin-left: @largeMonitorMargin;
@@ -220,7 +218,7 @@
 /* Generate single column widths for all grid/row fractions (up to @columnCount) */
 &{.forCols(); .-each(@name, @i) {
   .ui[class*="@{name} column"].grid > .row > .column,
-  .ui[class*="@{name} column"].grid > .column {
+  .ui[class*="@{name} column"].grid > .column:not(.row) {
     .-nColumn;
   }
 }}
@@ -251,7 +249,7 @@
 /* Column span permutations for non-standard grids/rows */
 &{.forColSpanPermutations(); .-each(@num, @n, @divider, @d) {
   .ui.grid > [class*="@{divider} column"].row > [class*="@{num} wide"].column,
-  .ui[class*="@{divider} column"].grid > [class*="@{num} wide"].column {
+  .ui[class*="@{divider} column"].grid > [class*="@{num} wide"].column:not(.row) {
     .-width !important;
   }
 }}
@@ -396,10 +394,10 @@
 -----------------------*/
 
 .ui.grid [class*="left floated"].column {
-  float: left;
+  margin-right: auto;
 }
 .ui.grid [class*="right floated"].column {
-  float: right;
+  margin-left: auto;
 }
 
 
@@ -423,8 +421,6 @@
 .ui[class*="vertically divided"].grid > .row {
   margin-top: 0em;
   margin-bottom: 0em;
-  padding-top: 0em;
-  padding-bottom: 0em;
 }
 
 /* No divider on first column on row */
@@ -499,8 +495,6 @@
 -----------------------*/
 
 .ui.celled.grid {
-  display: table;
-  table-layout: fixed;
   width: 100%;
   margin: @celledMargin;
   box-shadow: 0px 0px 0px @celledWidth @celledBorderColor;
@@ -508,8 +502,6 @@
 .ui.celled.grid > .row,
 .ui.celled.grid > .column.row,
 .ui.celled.grid > .column.row:first-child {
-  display: table;
-  table-layout: fixed;
   width: 100% !important;
   margin: 0em;
   padding: 0em;
@@ -517,7 +509,6 @@
 }
 .ui.celled.grid > .column:not(.row),
 .ui.celled.grid > .row > .column {
-  display: table-cell;
   box-shadow: (-@celledWidth) 0px 0px 0px @celledBorderColor;
 }
 .ui.celled.grid > .column:first-child,
@@ -544,6 +535,7 @@
 /* Internally Celled */
 .ui[class*="internally celled"].grid {
   box-shadow: none;
+  margin: 0em;
 }
 .ui[class*="internally celled"].grid > .row:first-child {
   box-shadow: none;
@@ -553,44 +545,90 @@
 }
 
 /*----------------------
+   Vertically Aligned
+-----------------------*/
+
+/* Top Aligned */
+.ui[class*="top aligned"].grid .column:not(.row),
+.ui.grid > [class*="top aligned"].row > .column,
+.ui.grid > [class*="top aligned"].column:not(.row),
+.ui.grid > .row > [class*="top aligned"].column {
+  flex-direction: column;
+  vertical-align: top;
+  align-self: flex-start !important;
+}
+
+/* Middle Aligned */
+.ui[class*="middle aligned"].grid .column:not(.row),
+.ui.grid > [class*="middle aligned"].row > .column,
+.ui.grid > [class*="middle aligned"].column:not(.row),
+.ui.grid > .row > [class*="middle aligned"].column {
+  flex-direction: column;
+  vertical-align: middle;
+  align-self: center !important;
+}
+
+/* Bottom Aligned */
+.ui[class*="bottom aligned"].grid .column:not(.row),
+.ui.grid > [class*="bottom aligned"].row > .column,
+.ui.grid > [class*="bottom aligned"].column:not(.row),
+.ui.grid > .row > [class*="bottom aligned"].column {
+  flex-direction: column;
+  vertical-align: bottom;
+  align-self: flex-end !important;
+}
+
+/* Stretched */
+.ui.stretched.grid > .row > .column,
+.ui.stretched.grid > .column,
+.ui.grid > .stretched.row > .column,
+.ui.grid > .stretched.column:not(.row),
+.ui.grid > .row > .stretched.column {
+  display: inline-flex !important;
+  align-self: stretch;
+  flex-direction: column;
+}
+
+.ui.stretched.grid > .row > .column > *,
+.ui.stretched.grid > .column > *,
+.ui.grid > .stretched.row > .column > *,
+.ui.grid > .stretched.column:not(.row) > *,
+.ui.grid > .row > .stretched.column > * {
+  flex-grow: 1;
+}
+
+/*----------------------
   Horizontally Centered
 -----------------------*/
 
 /* Left Aligned */
-.ui[class*="left aligned"].grid,
-.ui[class*="left aligned"].grid > .row > .column,
-.ui[class*="left aligned"].grid > .column,
-.ui.grid [class*="left aligned"].column,
-.ui.grid > [class*="left aligned"].row > .column {
+.ui[class*="left aligned"].grid .column,
+.ui.grid > [class*="left aligned"].row > .column,
+.ui.grid > [class*="left aligned"].column.column,
+.ui.grid > .row > [class*="left aligned"].column {
   text-align: left;
-  align-items: flex-start !important;
-}
-.ui.grid [class*="left aligned"].column{
-  text-align: left !important;
+  align-self: inherit;
 }
 
 /* Center Aligned */
-.ui[class*="center aligned"].grid,
-.ui[class*="center aligned"].grid > .row > .column,
-.ui[class*="center aligned"].grid > .column,
-.ui.grid > [class*="center aligned"].row > .column {
+.ui[class*="center aligned"].grid .column,
+.ui.grid > [class*="center aligned"].row > .column,
+.ui.grid > [class*="center aligned"].column.column,
+.ui.grid > .row > [class*="center aligned"].column {
   text-align: center;
-  align-items: center !important;
+  align-self: inherit;
 }
-.ui.grid [class*="center aligned"].column{
-  text-align: center !important;
+.ui[class*="center aligned"].grid {
+  justify-content: center;
 }
 
 /* Right Aligned */
-.ui[class*="right aligned"].grid,
-.ui[class*="right aligned"].grid > .row > .column,
-.ui[class*="right aligned"].grid > .column,
-.ui.grid > [class*="right aligned"].row > .column {
+.ui[class*="right aligned"].grid .column,
+.ui.grid > [class*="right aligned"].row > .column,
+.ui.grid > [class*="right aligned"].column.column,
+.ui.grid > .row > [class*="right aligned"].column {
   text-align: right;
-  align-items: flex-end !important;
-}
-.ui.grid [class*="right aligned"].column{
-  text-align: right !important;
+  align-self: inherit;
 }
 
 /* Justified */
@@ -608,86 +646,21 @@
 }
 
 /*----------------------
-   Vertically Aligned
------------------------*/
-
-/* Top Aligned */
-.ui[class*="top aligned"].grid,
-.ui[class*="top aligned"].grid > .row > .column,
-.ui[class*="top aligned"].grid > .column,
-.ui.grid [class*="top aligned"].column,
-.ui.grid > [class*="top aligned"].row > .column {
-  vertical-align: top;
-  justify-content: flex-start !important;
-}
-.ui.grid [class*="top aligned"].column {
-  vertical-align: top !important;
-  justify-content: flex-start !important;
-}
-
-.ui.stretched.grid > .row > .column,
-.ui.stretched.grid > .column:not(.row),
-.ui.grid .stretched.column,
-.ui.grid > .stretched.row > .column {
-  display: flex !important;
-  flex-direction: column;
-}
-.ui.stretched.grid > .row > .column > *,
-.ui.stretched.grid > .column > *,
-.ui.grid .stretched.column > *,
-.ui.grid > .stretched.row > .column > * {
-  flex-grow: 1;
-}
-
-/* Middle Aligned */
-.ui[class*="middle aligned"].grid,
-.ui[class*="middle aligned"].grid > .row > .column,
-.ui[class*="middle aligned"].grid > .column,
-.ui.grid > [class*="middle aligned"].row > .column {
-  vertical-align: middle;
-  justify-content: center !important;
-}
-.ui.grid [class*="middle aligned"].column{
-  vertical-align: middle !important;
-  justify-content: center !important;
-}
-
-/* Bottom Aligned */
-.ui[class*="bottom aligned"].grid,
-.ui[class*="bottom aligned"].grid > .row > .column,
-.ui[class*="bottom aligned"].grid > .column,
-.ui.grid > [class*="bottom aligned"].row > .column {
-  vertical-align: bottom;
-  justify-content: flex-end !important;
-}
-.ui.grid [class*="bottom aligned"].column {
-  justify-content: flex-end !important;
-  vertical-align: bottom !important;
-}
-
-/*----------------------
          Colored
 -----------------------*/
 
-.ui.grid > .white.row,
-.ui.grid > .white.column,
-.ui.grid > .row > .white.column {
-  background-color: @white !important;
-  color: @textColor;
-}
-.ui.grid > .row > .white.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
-}
-
-.ui.grid > .black.row,
-.ui.grid > .black.column,
-.ui.grid > .row > .black.column {
-  background-color: @black !important;
-  color: @white;
-}
+.ui.grid > .row > .red.column,
+.ui.grid > .row > .orange.column,
+.ui.grid > .row > .yellow.column,
+.ui.grid > .row > .olive.column,
+.ui.grid > .row > .green.column,
+.ui.grid > .row > .teal.column,
+.ui.grid > .row > .blue.column,
+.ui.grid > .row > .violet.column,
+.ui.grid > .row > .purple.column,
+.ui.grid > .row > .pink.column,
+.ui.grid > .row > .brown.column,
+.ui.grid > .row > .grey.column,
 .ui.grid > .row > .black.column {
   margin-top: -(@rowSpacing / 2);
   margin-bottom: -(@rowSpacing / 2);
@@ -695,181 +668,114 @@
   padding-bottom: (@rowSpacing / 2);
 }
 
-.ui.grid > .blue.row,
-.ui.grid > .blue.column,
-.ui.grid > .row > .blue.column {
-  background-color: @blue !important;
-  color: @white;
-}
-.ui.grid > .row > .blue.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
-}
-
-.ui.grid > .green.row,
-.ui.grid > .green.column,
-.ui.grid > .row > .green.column {
-  background-color: @green !important;
-  color: @white;
-}
-.ui.grid > .row > .green.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
-}
-
-.ui.grid > .orange.row,
-.ui.grid > .orange.column,
-.ui.grid > .row > .orange.column {
-  background-color: @orange !important;
-  color: @white;
-}
-.ui.grid > .row > .orange.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
-}
-
-.ui.grid > .pink.row,
-.ui.grid .pink.column {
-  background-color: @pink !important;
-  color: @white;
-}
-.ui.grid > .row > .pink.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
-}
-
-.ui.grid > .purple.row,
-.ui.grid > .purple.column,
-.ui.grid > .row > .purple.column {
-  background-color: @purple !important;
-  color: @white;
-}
-.ui.grid > .row > .purple.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
-}
-
+/* Red */
 .ui.grid > .red.row,
 .ui.grid > .red.column,
 .ui.grid > .row > .red.column {
   background-color: @red !important;
   color: @white;
 }
-.ui.grid > .row > .red.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
-}
-
-.ui.grid > .teal.row,
-.ui.grid > .teal.column,
-.ui.grid > .row > .teal.column {
-  background-color: @teal !important;
+/* Orange */
+.ui.grid > .orange.row,
+.ui.grid > .orange.column,
+.ui.grid > .row > .orange.column {
+  background-color: @orange !important;
   color: @white;
 }
-.ui.grid > .row > .teal.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
-}
-
+/* Yellow */
 .ui.grid > .yellow.row,
 .ui.grid > .yellow.column,
 .ui.grid > .row > .yellow.column {
   background-color: @yellow !important;
   color: @white;
 }
-.ui.grid > .row > .yellow.column {
-  margin-top: -(@rowSpacing / 2);
-  margin-bottom: -(@rowSpacing / 2);
-  padding-top: (@rowSpacing / 2);
-  padding-bottom: (@rowSpacing / 2);
+/* Olive */
+.ui.grid > .olive.row,
+.ui.grid > .olive.column,
+.ui.grid > .row > .olive.column {
+  background-color: @olive !important;
+  color: @white;
 }
+/* Green */
+.ui.grid > .green.row,
+.ui.grid > .green.column,
+.ui.grid > .row > .green.column {
+  background-color: @green !important;
+  color: @white;
+}
+/* Teal */
+.ui.grid > .teal.row,
+.ui.grid > .teal.column,
+.ui.grid > .row > .teal.column {
+  background-color: @teal !important;
+  color: @white;
+}
+/* Blue */
+.ui.grid > .blue.row,
+.ui.grid > .blue.column,
+.ui.grid > .row > .blue.column {
+  background-color: @blue !important;
+  color: @white;
+}
+/* Violet */
+.ui.grid > .violet.row,
+.ui.grid > .violet.column,
+.ui.grid > .row > .violet.column {
+  background-color: @violet !important;
+  color: @white;
+}
+/* Purple */
+.ui.grid > .purple.row,
+.ui.grid > .purple.column,
+.ui.grid > .row > .purple.column {
+  background-color: @purple !important;
+  color: @white;
+}
+/* Pink */
+.ui.grid > .pink.row,
+.ui.grid > .pink.column,
+.ui.grid > .row > .pink.column {
+  background-color: @pink !important;
+  color: @white;
+}
+/* Brown */
+.ui.grid > .brown.row,
+.ui.grid > .brown.column,
+.ui.grid > .row > .brown.column {
+  background-color: @brown !important;
+  color: @white;
+}
+/* Grey */
+.ui.grid > .grey.row,
+.ui.grid > .grey.column,
+.ui.grid > .row > .grey.column {
+  background-color: @grey !important;
+  color: @white;
+}
+/* Black */
+.ui.grid > .black.row,
+.ui.grid > .black.column,
+.ui.grid > .row > .black.column {
+  background-color: @black !important;
+  color: @white;
+}
+
 
 /*----------------------
       Equal Width
 -----------------------*/
 
-.ui[class*="equal width"].grid {
-  display: table;
-  table-layout: fixed;
-}
-.ui[class*="equal width"].grid > .row,
-.ui.grid > [class*="equal width"].row  {
-  display: table;
-  table-layout: fixed;
-  width: 100% !important;
-}
 .ui[class*="equal width"].grid > .column:not(.row),
 .ui[class*="equal width"].grid > .row > .column,
 .ui.grid > [class*="equal width"].row > .column {
-  display: table-cell;
-}
-
-/* Flexbox (Experimental / Overrides Where Supported) */
-.ui[class*="equal width"].grid,
-.ui[class*="equal width"].grid > .row,
-.ui.grid > [class*="equal width"].row  {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-.ui[class*="equal width"].grid > .column:not(.row),
-.ui[class*="equal width"].grid > .row > .column,
-.ui.grid > [class*="equal width"].row > .column {
-  display: block;
+  display: inline-block;
   flex-grow: 1;
 }
-
-
-/*----------------------
-  Equal Height Columns
------------------------*/
-
-.ui[class*="equal height"].grid {
-  display: table;
-  table-layout: fixed;
+.ui[class*="equal width"].grid > .wide.column,
+.ui[class*="equal width"].grid > .row > .wide.column,
+.ui.grid > [class*="equal width"].row > .wide.column {
+  flex-grow: 0;
 }
-.ui[class*="equal height"].grid > .row,
-.ui.grid > [class*="equal height"].row  {
-  display: table;
-  table-layout: fixed;
-  width: 100% !important;
-}
-.ui[class*="equal height"].grid > .column:not(.row),
-.ui[class*="equal height"].grid > .row > .column,
-.ui.grid > [class*="equal height"].row > .column {
-  display: table-cell;
-}
-
-/* Flexbox (Experimental / Overrides Where Supported) */
-.ui[class*="equal height"].grid,
-.ui[class*="equal height"].grid > .row,
-.ui.grid > [class*="equal height"].row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-.ui[class*="equal height"].grid > .column:not(.row),
-.ui[class*="equal height"].grid > .row > .column,
-.ui.grid > [class*="equal height"].row > .column {
-  display: block;
-  flex-direction: column;
-  flex-grow: 1;
-}
-
 
 
 /*-------------------
@@ -879,7 +785,7 @@
 /* Tablet Only */
 @media only screen and (min-width: @tabletBreakpoint) and (max-width: @largestTabletScreen) {
   .ui.doubling.grid {
-    width: 100% !important;
+    width: auto;
   }
   .ui.grid > .doubling.row,
   .ui.doubling.grid > .row {
@@ -891,6 +797,7 @@
     display: inline-block !important;
     padding-top: (@rowSpacing / 2) !important;
     padding-bottom: (@rowSpacing / 2) !important;
+    box-shadow: none !important;
     margin: 0em;
   }
 
@@ -902,9 +809,9 @@
   }
   
   .forCols(2); .-each(@name, @num) {
-    .ui[class*="@{name} column"].doubling:not(.stackable).grid > .row > .column,
-    .ui[class*="@{name} column"].doubling:not(.stackable).grid > .column,
-    .ui.grid > [class*="@{name} column"].doubling:not(.stackable).row > .column {
+    .ui[class*="@{name} column"].doubling.grid > .row > .column,
+    .ui[class*="@{name} column"].doubling.grid > .column:not(.row),
+    .ui.grid > [class*="@{name} column"].doubling.row.row > .column {
       .-doublingNumber(@num);
       .fractionWidth(1, @i) !important;
     }
@@ -915,16 +822,15 @@
 @media only screen and (max-width: @largestMobileScreen) {
   .ui.grid > .doubling.row,
   .ui.doubling.grid > .row {
-    display: block !important;
     margin: 0em !important;
     padding: 0em !important;
   }
   .ui.grid > .doubling.row > .column,
   .ui.doubling.grid > .row > .column {
-    display: inline-block !important;
     padding-top: (@rowSpacing / 2) !important;
     padding-bottom: (@rowSpacing / 2) !important;
     margin: 0em !important;
+    box-shadow: none !important;
   }
 
   .-doublingNumber(@x) when (default()) {
@@ -935,9 +841,9 @@
   }
   
   .forCols(2); .-each(@name, @num) {
-    .ui[class*="@{name} column"].doubling.grid > .row > .column,
-    .ui[class*="@{name} column"].doubling.grid > .column,
-    .ui.grid > [class*="@{name} column"].doubling.row > .column {
+    .ui[class*="@{name} column"].doubling:not(.stackable).grid > .row > .column,
+    .ui[class*="@{name} column"].doubling:not(.stackable).grid > .column:not(.row),
+    .ui.grid > [class*="@{name} column"].doubling:not(.stackable).row.row > .column {
       .-doublingNumber(@num);
       .fractionWidth(1, @i) !important;
     }
@@ -950,29 +856,30 @@
 
 @media only screen and (max-width: @largestMobileScreen) {
   .ui.stackable.grid {
-    display: block !important;
     width: auto;
-    margin-left: 0em !important;
-    margin-right: 0em !important;
-    padding: 0em;
   }
   .ui.stackable.grid > .row > .wide.column,
   .ui.stackable.grid > .wide.column,
   .ui.stackable.grid > .column.grid > .column,
   .ui.stackable.grid > .column.row > .column,
   .ui.stackable.grid > .row > .column,
-  .ui.stackable.grid > .column:not(.row) {
-    display: block !important;
-    width: auto !important;
+  .ui.stackable.grid > .column:not(.row),
+  .ui.grid > .stackable.stackable.row > .column {
+    width: 100% !important;
     margin: 0em 0em !important;
     box-shadow: none !important;
-    float: none !important;
     padding: (@stackableRowSpacing / 2) (@stackableGutter / 2) !important;
   }
-  .ui.stackable.grid > .row {
-    display: block !important;
+  .ui.stackable.grid:not(.vertically) > .row {
     margin: 0em;
     padding: 0em;
+  }
+
+  /* Coupling */
+  .ui.container > .ui.stackable.grid > .column,
+  .ui.container > .ui.stackable.grid > .row > .column {
+    padding-left: 0em !important;
+    padding-right: 0em !important;
   }
 
   /* Don't pad inside segment or nested grid */
@@ -980,11 +887,6 @@
   .ui.segment:not(.vertical) .ui.stackable.page.grid {
     margin-left: -(@stackableGutter / 2) !important;
     margin-right: -(@stackableGutter / 2) !important;
-  }
-
-  /* Equal Height Stackable */
-  .ui[class*="equal height"].stackable.page.grid {
-    display: block !important;
   }
 
   /* Divided Stackable */
@@ -1002,13 +904,19 @@
   }
 
   .ui.stackable.celled.grid > .column:not(.row),
-  .ui.stackable.divided.grid > .column:not(.row),
+  .ui.stackable.divided:not(.vertically).grid > .column:not(.row),
   .ui.stackable.celled.grid > .row > .column,
-  .ui.stackable.divided.grid > .row > .column {
+  .ui.stackable.divided:not(.vertically).grid > .row > .column {
     border-top: @stackableMobileBorder;
     box-shadow: none !important;
     padding-top: @stackableRowSpacing !important;
     padding-bottom: @stackableRowSpacing !important;
+  }
+
+  .ui.stackable.divided:not(.vertically).grid > .column:not(.row),
+  .ui.stackable.divided:not(.vertically).grid > .row > .column {
+    padding-left: 0em !important;
+    padding-right: 0em !important;
   }
 
 }
@@ -1021,7 +929,7 @@
 /* These include arbitrary class repetitions for forced specificity */
 
 /* Mobile Only Hide */
-@media only screen and ( max-width: @largestMobileScreen ) {
+@media only screen and (max-width: @largestMobileScreen) {
   .ui.tablet:not(.mobile).only.grid.grid.grid,
   .ui.grid.grid.grid > [class*="tablet only"].row:not(.mobile),
   .ui.grid.grid.grid > [class*="tablet only"].column:not(.mobile),
@@ -1034,9 +942,21 @@
   .ui.grid.grid.grid > .row > [class*="computer only"].column:not(.mobile) {
     display: none !important;
   }
+  .ui[class*="large screen only"].grid.grid.grid:not(.mobile),
+  .ui.grid.grid.grid > [class*="large screen only"].row:not(.mobile),
+  .ui.grid.grid.grid > [class*="large screen only"].column:not(.mobile),
+  .ui.grid.grid.grid > .row > [class*="large screen only"].column:not(.mobile) {
+    display: none !important;
+  }
+  .ui[class*="widescreen"].grid.grid.grid:not(.mobile),
+  .ui.grid.grid.grid > [class*="large screen only"].row:not(.mobile),
+  .ui.grid.grid.grid > [class*="large screen only"].column:not(.mobile),
+  .ui.grid.grid.grid > .row > [class*="large screen only"].column:not(.mobile) {
+    display: none !important;
+  }
 }
 /* Tablet Only Hide */
-@media only screen and (min-width: @tabletBreakpoint ) and (max-width: @largestTabletScreen) {
+@media only screen and (min-width: @tabletBreakpoint) and (max-width: @largestTabletScreen) {
   .ui[class*="mobile only"].grid.grid.grid:not(.tablet),
   .ui.grid.grid.grid > [class*="mobile only"].row:not(.tablet),
   .ui.grid.grid.grid > [class*="mobile only"].column:not(.tablet),
@@ -1049,10 +969,72 @@
   .ui.grid.grid.grid > .row > [class*="computer only"].column:not(.tablet) {
     display: none !important;
   }
+  .ui[class*="large screen only"].grid.grid.grid:not(.mobile),
+  .ui.grid.grid.grid > [class*="large screen only"].row:not(.mobile),
+  .ui.grid.grid.grid > [class*="large screen only"].column:not(.mobile),
+  .ui.grid.grid.grid > .row > [class*="large screen only"].column:not(.mobile) {
+    display: none !important;
+  }
+  .ui[class*="widescreen"].grid.grid.grid:not(.mobile),
+  .ui.grid.grid.grid > [class*="widescreen only"].row:not(.mobile),
+  .ui.grid.grid.grid > [class*="widescreen only"].column:not(.mobile),
+  .ui.grid.grid.grid > .row > [class*="widescreen only"].column:not(.mobile) {
+    display: none !important;
+  }
 }
 
 /* Computer Only Hide */
-@media only screen and ( min-width: (@computerBreakpoint) ) {
+@media only screen and (min-width: @computerBreakpoint) and (max-width: @largestSmallMonitor) {
+  .ui[class*="mobile only"].grid.grid.grid:not(.computer),
+  .ui.grid.grid.grid > [class*="mobile only"].row:not(.computer),
+  .ui.grid.grid.grid > [class*="mobile only"].column:not(.computer),
+  .ui.grid.grid.grid > .row > [class*="mobile only"].column:not(.computer) {
+    display: none !important;
+  }
+  .ui[class*="tablet only"].grid.grid.grid:not(.computer),
+  .ui.grid.grid.grid > [class*="tablet only"].row:not(.computer),
+  .ui.grid.grid.grid > [class*="tablet only"].column:not(.computer),
+  .ui.grid.grid.grid > .row > [class*="tablet only"].column:not(.computer) {
+    display: none !important;
+  }
+  .ui[class*="large screen only"].grid.grid.grid:not(.mobile),
+  .ui.grid.grid.grid > [class*="large screen only"].row:not(.mobile),
+  .ui.grid.grid.grid > [class*="large screen only"].column:not(.mobile),
+  .ui.grid.grid.grid > .row > [class*="large screen only"].column:not(.mobile) {
+    display: none !important;
+  }
+  .ui[class*="widescreen"].grid.grid.grid:not(.mobile),
+  .ui.grid.grid.grid > [class*="widescreen only"].row:not(.mobile),
+  .ui.grid.grid.grid > [class*="widescreen only"].column:not(.mobile),
+  .ui.grid.grid.grid > .row > [class*="widescreen only"].column:not(.mobile) {
+    display: none !important;
+  }
+}
+
+/* Large Screen Only Hide */
+@media only screen and (min-width: @largeMonitorBreakpoint) and (max-width: @largestLargeMonitor) {
+  .ui[class*="mobile only"].grid.grid.grid:not(.computer),
+  .ui.grid.grid.grid > [class*="mobile only"].row:not(.computer),
+  .ui.grid.grid.grid > [class*="mobile only"].column:not(.computer),
+  .ui.grid.grid.grid > .row > [class*="mobile only"].column:not(.computer) {
+    display: none !important;
+  }
+  .ui[class*="tablet only"].grid.grid.grid:not(.computer),
+  .ui.grid.grid.grid > [class*="tablet only"].row:not(.computer),
+  .ui.grid.grid.grid > [class*="tablet only"].column:not(.computer),
+  .ui.grid.grid.grid > .row > [class*="tablet only"].column:not(.computer) {
+    display: none !important;
+  }
+  .ui[class*="widescreen"].grid.grid.grid:not(.mobile),
+  .ui.grid.grid.grid > [class*="widescreen only"].row:not(.mobile),
+  .ui.grid.grid.grid > [class*="widescreen only"].column:not(.mobile),
+  .ui.grid.grid.grid > .row > [class*="widescreen only"].column:not(.mobile) {
+    display: none !important;
+  }
+}
+
+/* Widescreen Only Hide */
+@media only screen and (min-width: @widescreenMonitorBreakpoint) {
   .ui[class*="mobile only"].grid.grid.grid:not(.computer),
   .ui.grid.grid.grid > [class*="mobile only"].row:not(.computer),
   .ui.grid.grid.grid > [class*="mobile only"].column:not(.computer),
@@ -1066,5 +1048,6 @@
     display: none !important;
   }
 }
+
 
 .loadUIOverrides();
